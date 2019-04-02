@@ -1,0 +1,6 @@
+/**
+ * All of the CSS for your admin-specific functionality should be
+ * included in this file.
+ */
+.onyxsynclogcontainer{background: #fff; padding: 10px; border-radius: 5px; margin: 20px; width: 80%; min-height: 500px; height: 500px; border: 1px solid #ccc; overflow-y: scroll;}
+.fl{float:left;}
