@@ -95,8 +95,6 @@ class Onyx_Admin_API_Orders_Sync {
 
 	}
 	public function onyx_post_order_data_to_erp($order_id){
-        echo 'helooooooooooooooooooooooooooooooooooooooooooooooo2';
-        echo $order_id;
 		if( ! $order_id ) return;
 		$order = wc_get_order( $order_id);
 		$erpOrderNo = get_post_meta($order_id,'sync_erp_orderno',true);

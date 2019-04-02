@@ -177,5 +177,40 @@ public function add_onyx_erp_posted_to_order_statuses( $order_statuses ) {
     }
     return $new_order_statuses;
   }
+
+    public function onyx_post_user_data_to_erp($user_id){
+        if( ! $user_id ) return;
+        $user_data = get_userdata($user_id );
+        $user_meta = get_user_meta($user_id);
+        $phone = get_user_meta($user_id,'phone_number',true);
+
+        if (! $user_meta['billing_phone'][0] ) return;
+        if (! $user_meta['billing_country'][0] ) return;
+
+            $onyx_api_sync = new Onyx_Admin_API_Sync( $this->plugin_name, $this->version);
+            $apiSettings = $onyx_api_sync->get_API_settings();
+            $postOptions= array();
+            $postOptions['service']= 'RegistrCashCustomer';
+            $postOptions['values'] = array(
+                'ActivityType'	   =>'1',
+                'CompanyName'   =>'CompanyName',
+                'Email'			=> $user_data->user_email,
+                'Mobile'		=> $user_meta['billing_phone'][0],
+                'Name'          => $user_data->nickname,
+                'Password'      => $user_data->user_pass,
+                'CountryCode'	=> '1',
+                'CityCode'      => '1',
+                'Address'       => $user_meta['billing_address_1'][0]
+            );
+            $isOrderPushed = $onyx_api_sync->push_records($postOptions);
+            if($isOrderPushed->SingleObjectHeader!=null){
+                echo 'success';
+            }else{
+                echo 'fail';
+
+                //	echo 'Opps! there might be some issue wile posting order';
+                // wp_mail( $adminEmail, 'ERP Order posting Failed ',"Please login to admin panel and check the issue while posting order to ERP. Order status is set to 'Pending Posting To ERP'");
+            }
+    }
 	
 }

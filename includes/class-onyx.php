@@ -180,9 +180,10 @@ class Onyx {
 		$this->loader->add_action( 'product_cat_edit_form_fields',$onyx_admin_pages, 'product_cat_taxonomy_custom_fields', 10, 2 );
 		$this->loader->add_action( 'woocommerce_admin_order_data_after_billing_address', $onyx_admin_orders_sync_Class,'onyx_display_order_erp_id', 10, 1 );
 		$this->loader->add_action( 'init', $plugin_admin,'register_onyx_erp_posted_order_status' );
-
-
+        $this->loader->add_action( 'user_register', $plugin_admin,'onyx_post_user_data_to_erp', 10,1 );
+        $this->loader->add_action( 'profile_update', $plugin_admin,'onyx_post_user_data_to_erp', 10,2 );
 	}
+
 	private function define_admin_filters() {
 		$onyx_API_Sync_Class = new Onyx_Admin_API_Sync( $this->get_plugin_name(), $this->get_version() );
 		$onyx_admin_pages = new Onyx_Settings_Pages( $this->get_plugin_name(), $this->get_version() );
