@@ -182,10 +182,8 @@ public function add_onyx_erp_posted_to_order_statuses( $order_statuses ) {
         if( ! $user_id ) return;
         $user_data = get_userdata($user_id );
         $user_meta = get_user_meta($user_id);
-        $phone = get_user_meta($user_id,'phone_number',true);
 
         if (! $user_meta['billing_phone'][0] ) return;
-        if (! $user_meta['billing_country'][0] ) return;
 
             $onyx_api_sync = new Onyx_Admin_API_Sync( $this->plugin_name, $this->version);
             $apiSettings = $onyx_api_sync->get_API_settings();
@@ -197,7 +195,7 @@ public function add_onyx_erp_posted_to_order_statuses( $order_statuses ) {
                 'Email'			=> $user_data->user_email,
                 'Mobile'		=> $user_meta['billing_phone'][0],
                 'Name'          => $user_data->nickname,
-                'Password'      => $user_data->user_pass,
+                'Password'      => '',
                 'CountryCode'	=> '1',
                 'CityCode'      => '1',
                 'Address'       => $user_meta['billing_address_1'][0]

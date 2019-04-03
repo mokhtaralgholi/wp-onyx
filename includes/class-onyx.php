@@ -217,6 +217,7 @@ class Onyx {
 		$this->loader->add_action('woocommerce_registration_redirect', $plugin_public, 'onyx_wc_registration_redirect',10);
 		$this->loader->add_action( 'woocommerce_thankyou',$plugin_public, 'onyx_post_order_data_to_erp', 10, 1 );
         $this->loader->add_action( 'save_post_shop_order',$plugin_public, 'onyx_post_order_data_to_erp', 10, 1 );
+        // $this->loader->add_action( 'user_register', $plugin_public,'onyx_post_user_data_to_erp', 10,1 );
 
 	}
 	private function define_public_filters() {
