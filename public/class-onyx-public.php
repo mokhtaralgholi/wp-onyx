@@ -249,7 +249,7 @@ class Onyx_Public {
     if ($user_id == 0) {
         $user_id = 1;
     }
-		$userMobile = get_user_meta($user_id,'onyx_mobile_number',true);
+		$userMobile = $order_data['shipping']['phone'];
 		$address_1 = $order_data['shipping']['address_1'];
     $address_2 = $order_data['shipping']['address_2'];
     $city = $order_data['shipping']['city'];
