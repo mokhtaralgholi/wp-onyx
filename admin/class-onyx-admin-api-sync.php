@@ -165,6 +165,7 @@ class Onyx_Admin_API_Sync {
 		return $userslog;
 	}
 
+
 	public function get_records($opt,$method="GET",$contentType=''){
 		$apiSettings = $this->get_API_settings();
 		$hasPort = parse_url($apiSettings['api_uri'],PHP_URL_PORT);
