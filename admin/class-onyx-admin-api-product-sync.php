@@ -73,7 +73,8 @@ class Onyx_Admin_API_Product_Sync {
 							 '&sortDirection=-1');
 		$products = $this->ApiSyncClass->get_records($opt);
 		//echo '<pre>'; print_r($products); echo '</pre>';
-        $this->get_products_attributes();
+        // $this->get_products_attributes();
+        // $this->sync_products_variation();
 		return $products->MultipleObjectHeader;
 	}
 	public function process_erp_products($products){
@@ -363,6 +364,62 @@ class Onyx_Admin_API_Product_Sync {
         if (!term_exists( $slug, $attribute)) {
             wp_insert_term( $label_name, 'pa_'.$attribute, $args );
         }
+    }
+
+    // sync products variations
+    public function sync_products_variation() {
+        $opt=array(
+            "service"=>"GetItemAttachmentAvailableQuantity",
+            "prams"=>
+                '&searchValue=-1'.
+                '&pageNumber=-1'.
+                '&rowsCount=-1'.
+                '&orderBy=-1'.
+                '&sortDirection=-1'
+        );
+        $variation_data = array(
+            'attributes' => array(
+            ),
+            'stock_qty'     => 0
+        );
+
+        $response = $this->ApiSyncClass->get_records($opt);
+        if ($response->MultipleObjectHeader ==! null) {
+            $variation = $response->MultipleObjectHeader;
+            for ($i = 0; $i<sizeof($variation); $i++) {
+                $wc_product_id = $this->get_wc_products_id($variation[$i]->I_CODE);
+                $variation_data = array(
+                    'attributes' => array(
+                        $variation[$i]->ATTCH_DESC_NO1 => $variation[$i]->ATTCH_NO1,
+                        $variation[$i]->ATTCH_DESC_NO2 => $variation[$i]->ATTCH_NO2,
+                        $variation[$i]->ATTCH_DESC_NO3 => $variation[$i]->ATTCH_NO3,
+                        $variation[$i]->ATTCH_DESC_NO4 => $variation[$i]->ATTCH_NO4,
+                        $variation[$i]->ATTCH_DESC_NO5 => $variation[$i]->ATTCH_NO5
+                    ),
+                    'stock_qty'     => $variation[$i]->AVL_QTY,
+                    'erp_id'        => $variation[$i]->FLEX_NO
+                );
+                $this->create_product_variation($wc_product_id, $variation_data);
+            }
+        } else {
+            echo 'error get products variations from erp';
+        }
+
+    }
+
+    public function get_wc_products_id( $value ) {
+        $products = wc_get_products(array('status' => 'publish'));
+        $id = 0;
+        foreach ($products as $product) {
+            $id = $product->get_id();
+            if (get_post_meta($id,$value,true) === $value ) {
+                break;
+            }
+        }
+        return $id ;
+    }
+
+    public function create_product_variation ($product_id, $variation_data) {
 
     }
 }

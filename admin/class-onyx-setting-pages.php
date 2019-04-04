@@ -589,9 +589,8 @@ class Onyx_Settings_Pages {
 			}
 			if(get_option('onyx_sync_products')){
 				$onyx_sync_products = new Onyx_Admin_API_Product_Sync( $this->plugin_name, $this->version);
-				// $erpPro =  $onyx_sync_products->get_erp_products();
-				// $syncLog = $onyx_sync_products->process_erp_products($erpPro);
-                $onyx_sync_products->get_products_attributes();
+				$erpPro =  $onyx_sync_products->get_erp_products();
+				$syncLog = $onyx_sync_products->process_erp_products($erpPro);
 				$this->remove_deleted_products($syncLog);
 				if(isset($syncLog['added'])){
 				foreach($syncLog['added'] as $line){
