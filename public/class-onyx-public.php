@@ -241,24 +241,25 @@ class Onyx_Public {
 		$_shipping_lat = get_post_meta($order_id, "_shipping_lat");
 		$_shipping_lng = get_post_meta($order_id, "_shipping_lng");
 		if(!$erpOrderNo){
-    $order_data = $order->get_data();
+        $order_data = $order->get_data();
         if ($order_data['status'] == 'auto-draft') return;
-    $orderTotal = $order->get_total();
+        $orderTotal = $order->get_total();
 		$user = $order->get_user();
-    $user_id = $order->get_user_id();
-    if ($user_id == 0) {
-        $user_id = 1;
-    }
-		$userMobile = get_user_meta($user_id,'onyx_mobile_number',true);
-		$address_1 = $order_data['shipping']['address_1'];
-    $address_2 = $order_data['shipping']['address_2'];
-    $city = $order_data['shipping']['city'];
-    $state = $order_data['shipping']['state'];
-    $postcode = $order_data['shipping']['postcode'];
-    $country = $order_data['shipping']['country'];
+        $user_id = $order->get_user_id();
+        $userMobile = $order_data['billing']['phone'];
+        $userCode = $order_data['billing']['phone'];
+        if ($user_id == 0) {
+            $userCode = null;
+        }
+        $address_1 = $order_data['billing']['address_1'];
+        $address_2 = $order_data['billing']['address_2'];
+        $city = $order_data['billing']['city'];
+        $state = $order_data['billing']['state'];
+        $postcode = $order_data['billing']['postcode'];
+        $country = $order_data['billing']['country'];
 		$line_items = $order->get_items();
 		$orderItems =array();
-    foreach ($line_items as $item_key => $item_values){
+        foreach ($line_items as $item_key => $item_values){
 			 $oItem =array();
 			 $product_id = $item_values->get_product_id();
 			  $pUnit  = get_post_meta($product_id,'_onyxtab_unit',true);
@@ -293,7 +294,7 @@ class Onyx_Public {
 		 $postOptions['values'] = array(
 			          'OrderNo'	   =>-1,
 								'OrderSer'   =>-1,
-								'Code'			 =>$userMobile,
+								'Code'			 =>$userCode,
 								'Name'			 =>$order_data['billing']['first_name'] .' '. $order_data['billing']['last_name'],
 								'CustomerType'=>1,
 								'FiscalYear'   => $apiSettings['accounting_year'],
