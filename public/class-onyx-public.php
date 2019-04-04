@@ -246,7 +246,6 @@ class Onyx_Public {
         $orderTotal = $order->get_total();
 		$user = $order->get_user();
         $user_id = $order->get_user_id();
-
         $userMobile = $order_data['billing']['phone'];
         $userCode = $order_data['billing']['phone'];
         if ($user_id == 0) {
