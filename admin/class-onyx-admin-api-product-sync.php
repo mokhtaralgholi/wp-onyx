@@ -73,8 +73,8 @@ class Onyx_Admin_API_Product_Sync {
 							 '&sortDirection=-1');
 		$products = $this->ApiSyncClass->get_records($opt);
 		//echo '<pre>'; print_r($products); echo '</pre>';
-        // $this->get_products_attributes();
-        // $this->sync_products_variation();
+        $this->sync_products_attributes();
+        $this->sync_products_variation();
 		return $products->MultipleObjectHeader;
 	}
 	public function process_erp_products($products){
@@ -290,7 +290,7 @@ class Onyx_Admin_API_Product_Sync {
 	}
 
 	// get Products Attributes
-    public function get_products_attributes() {
+    public function sync_products_attributes() {
         $opt=array(
             "service"=>"GetItemsAttachments",
             "prams"=>
@@ -361,7 +361,7 @@ class Onyx_Admin_API_Product_Sync {
 	    $args = array(
 	        'slug' => $slug
         );
-        if (!term_exists( $slug, $attribute)) {
+        if (!term_exists( $slug, 'pa_'.$attribute)) {
             wp_insert_term( $label_name, 'pa_'.$attribute, $args );
         }
     }
@@ -408,11 +408,16 @@ class Onyx_Admin_API_Product_Sync {
     }
 
     public function get_wc_products_id( $value ) {
-        $products = wc_get_products(array('status' => 'publish'));
+        $products = get_posts(
+            array(
+                'numberposts' => -1,
+                'post_type'		=> 'product',
+                )
+        );
         $id = 0;
         foreach ($products as $product) {
-            $id = $product->get_id();
-            if (get_post_meta($id,$value,true) === $value ) {
+            $id = $product->ID;
+            if (get_post_meta($id,'_onyxtab_code',true) === $value ) {
                 break;
             }
         }
@@ -420,7 +425,102 @@ class Onyx_Admin_API_Product_Sync {
     }
 
     public function create_product_variation ($product_id, $variation_data) {
+        // Get the Variable product object (parent)
+        $product = wc_get_product($product_id);
 
+        $variation_post = array(
+            'post_title'  => $product->get_title(),
+            'post_name'   => 'product-'.$product_id.'-variation',
+            'post_status' => 'publish',
+            'post_parent' => $product_id,
+            'post_type'   => 'product_variation',
+            'guid'        => $product->get_permalink()
+        );
+
+        // Creating the product variation
+        $variation_id = wp_insert_post( $variation_post );
+
+        // Get an instance of the WC_Product_Variation object
+        $variation = new WC_Product_Variation( $variation_id );
+
+        // Iterating through the variations attributes
+        $i = 0;
+        foreach ($variation_data['attributes'] as $attribute => $term_slug) {
+            if ($attribute ) {
+            $taxonomy = 'pa_' . $attribute; // The attribute taxonomy
+            $term = get_term_by('slug', $term_slug, $taxonomy);
+            $term_name = $term->name;
+            // If taxonomy doesn't exists we create it (Thanks to Carl F. Corneil)
+            if (!taxonomy_exists($taxonomy)) {
+                register_taxonomy(
+                    $taxonomy,
+                    'product_variation',
+                    array(
+                        'hierarchical' => false,
+                        'label' => ucfirst($taxonomy),
+                        'query_var' => true,
+                        'rewrite' => array('slug' => '$taxonomy'), // The base slug
+                    )
+                );
+            }
+
+            // Check if the Term name exist and if not we create it.
+            if (!term_exists($term_name, $taxonomy))
+                wp_insert_term($term_name, $taxonomy); // Create the term
+
+            // Get the term slug
+
+            // Get the post Terms names from the parent variable product.
+            $post_term_names = wp_get_post_terms($product_id, $taxonomy, array('fields' => 'names'));
+
+            // Check if the post term exist and if not we set it in the parent variable product.
+            if (!in_array($term_name, $post_term_names)) {
+                wp_set_object_terms($product_id, $term_name, $taxonomy, true);
+            }
+                $taxOptions[$i] = Array(
+                    'name' => $taxonomy,
+                    'value' => $term_name,
+                    'is_visible' => '1',
+                    'is_variation' => '1',
+                    'is_taxonomy' => '1'
+                );
+                update_post_meta($product_id, '_product_attributes', $taxOptions);
+            //wp_set_post_terms( $product_id, $term_name, $taxonomy, true );
+
+
+            // Set/save the attribute data in the product variation
+            update_post_meta($variation_id, 'attribute_' . $taxonomy, $term_slug);
+                $i++;
+        }
+        }
+
+        ## Set/save all other data
+
+//        // SKU
+//        if( ! empty( $variation_data['sku'] ) )
+//            $variation->set_sku( $variation_data['sku'] );
+//
+//        // Prices
+//        if( empty( $variation_data['sale_price'] ) ){
+//            $variation->set_price( $variation_data['regular_price'] );
+//        } else {
+//            $variation->set_price( $variation_data['sale_price'] );
+//            $variation->set_sale_price( $variation_data['sale_price'] );
+//        }
+//        $variation->set_regular_price( $variation_data['regular_price'] );
+
+        // Stock
+        if( ! empty($variation_data['stock_qty']) ){
+            $variation->set_stock_quantity( $variation_data['stock_qty'] );
+            $variation->set_manage_stock(true);
+            $variation->set_stock_status('');
+        } else {
+            $variation->set_manage_stock(false);
+        }
+
+        $variation->set_weight(''); // weight (reseting)
+
+        $variation->save(); // Save the data
     }
 }
 
