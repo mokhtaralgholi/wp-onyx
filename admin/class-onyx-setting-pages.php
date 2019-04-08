@@ -437,7 +437,6 @@ class Onyx_Settings_Pages {
 		 				    $erpPro =  $onyx_sync_products->get_erp_products();
 								$syncLog = $onyx_sync_products->process_erp_products($erpPro);
 							  $this->remove_deleted_products($syncLog);
-
 								if(isset($syncLog['added'])){
 								echo '<div class="alert alert-succes"><strong>'.count($syncLog['added']) .'</strong> Products Added';
 								 foreach($syncLog['added'] as $line){
