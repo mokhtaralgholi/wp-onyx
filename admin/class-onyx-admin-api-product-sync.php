@@ -473,7 +473,9 @@ class Onyx_Admin_API_Product_Sync {
         // Get the Variable product object (parent)
         $product = wc_get_product($product_id);
 
-
+        if (!taxonomy_exists('product_type')) {
+            register_taxonomy('product_type', array('product_type'));
+        }
 
         $variation_post = array(
             'post_title'  => $product->get_title(),
@@ -543,10 +545,7 @@ class Onyx_Admin_API_Product_Sync {
 
         $variation->save(); // Save the data
         $product->save();
-        $post_data = array(
-            'ID' => $product_id
-        );
-        wp_update_post( $post_data );
+        wc_delete_product_transients($variation_id);
     }
 }
 
