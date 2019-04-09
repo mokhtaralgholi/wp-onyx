@@ -543,7 +543,10 @@ class Onyx_Admin_API_Product_Sync {
 
         $variation->save(); // Save the data
         $product->save();
-        wc_delete_product_transients( $product_id );
+        $post_data = array(
+            'ID' => $product_id
+        );
+        wp_update_post( $post_data );
     }
 }
 
