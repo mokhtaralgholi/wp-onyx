@@ -125,7 +125,8 @@ class Onyx_Public {
 		?>
        <p class="form-row form-row-wide">
        <label for="reg_billing_phone"><?php _e( 'Mobile Number', 'woocommerce' ); ?><span class="required">*</span></label>
-       <input type="text" class="input-text" name="billing_phone" id="reg_billing_phone" value="<?php esc_attr_e($mobileNumber); ?>" />
+       <input type="tel" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+              required class="input-text" name="billing_phone" id="reg_billing_phone" value="<?php esc_attr_e($mobileNumber); ?>" />
        </p>
 			<?php
 	}
