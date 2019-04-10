@@ -165,31 +165,31 @@ class Onyx_Public {
 //					$response = curl_exec($curl);
 //					$err = curl_error($curl);
 //					curl_close($curl);
-            $apiKey = 'RZ7/9tNvEDk-FUs3IrMT6U1pzQYeJ0lZGXiou7NRRk';
-
-            // Message details
-            $numbers = array($_POST['billing_phone']);
-            $sender = urlencode('website acttivation key');
-            $message = rawurlencode('your acctivation code'.$mobileValidationCode);
-
-            $numbers = implode(',', $numbers);
-
-            // Prepare data for POST request
-            $data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
-
-            // Send the POST request with cURL
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, 'https://api.txtlocal.com/send/');
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            $response = curl_exec($ch);
-            if ($response === FALSE) {
-                $response =  "cURL Error: " . curl_error($ch);
-            }
-            curl_close($ch);
-            // Process your response here
-            echo $response;
+//            $apiKey = 'RZ7/9tNvEDk-FUs3IrMT6U1pzQYeJ0lZGXiou7NRRk';
+//
+//            // Message details
+//            $numbers = array($_POST['billing_phone']);
+//            $sender = urlencode('website acttivation key');
+//            $message = rawurlencode('your acctivation code'.$mobileValidationCode);
+//
+//            $numbers = implode(',', $numbers);
+//
+//            // Prepare data for POST request
+//            $data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
+//
+//            // Send the POST request with cURL
+//            $ch = curl_init();
+//            curl_setopt($ch, CURLOPT_URL, 'https://api.txtlocal.com/send/');
+//            curl_setopt($ch, CURLOPT_POST, true);
+//            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+//            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//            $response = curl_exec($ch);
+//            if ($response === FALSE) {
+//                $response =  "cURL Error: " . curl_error($ch);
+//            }
+//            curl_close($ch);
+//            // Process your response here
+//            echo $response;
 
 
     	}
@@ -248,10 +248,8 @@ class Onyx_Public {
         );
         $isOrderPushed = $onyx_api_sync->push_records($postOptions);
         if($isOrderPushed->SingleObjectHeader!=null){
-            echo 'success';
-        }else{
-            echo 'fail';
 
+        }else{
             //	echo 'Opps! there might be some issue wile posting order';
             // wp_mail( $adminEmail, 'ERP Order posting Failed ',"Please login to admin panel and check the issue while posting order to ERP. Order status is set to 'Pending Posting To ERP'");
         }
