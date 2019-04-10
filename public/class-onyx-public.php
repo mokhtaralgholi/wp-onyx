@@ -121,49 +121,75 @@ class Onyx_Public {
 	   }
 	}
 	public function woo_mobilenumber_register_field(){
-		$mobileNumber = isset($_POST['onyx_mobile_number'])?$_POST['onyx_mobile_number']:'';
+		$mobileNumber = isset($_POST['reg_billing_phone'])?$_POST['reg_billing_phone']:'';
 		?>
        <p class="form-row form-row-wide">
-       <label for="onyx_mobile_number"><?php _e( 'Mobile Number', 'woocommerce' ); ?><span class="required">*</span></label>
-       <input type="text" class="input-text" name="onyx_mobile_number" id="onyx_mobile_number" value="<?php esc_attr_e($mobileNumber); ?>" />
+       <label for="reg_billing_phone"><?php _e( 'Mobile Number', 'woocommerce' ); ?><span class="required">*</span></label>
+       <input type="text" class="input-text" name="billing_phone" id="reg_billing_phone" value="<?php esc_attr_e($mobileNumber); ?>" />
        </p>
 			<?php
 	}
 	public function woo_validate_mobilenumber_field($username, $email, $validation_errors){
-		if ( isset( $_POST['onyx_mobile_number'] ) && empty( $_POST['onyx_mobile_number'] ) ) {
+		if ( isset( $_POST['billing_phone'] ) && empty( $_POST['billing_phone'] ) ) {
              $validation_errors->add( 'onyx_mobile_number_error', __( '<strong>Error</strong>: Mobile number is required!.', 'woocommerce' ) );
       }
 		return $validation_errors;
 	}
 	public function wooc_save_mobilenumber_field($customer_id){
-		if ( isset( $_POST['onyx_mobile_number'] ) ) {
-				$apiSettings = $this->get_API_settings();
+		if ( isset( $_POST['billing_phone'] ) ) {
+				// $apiSettings = $onyx_api_sync->get_API_settings();
 			   $mobileValidationCode = $this->randomString(6);
-				 update_user_meta( $customer_id, 'onyx_mobile_number', sanitize_text_field( $_POST['onyx_mobile_number'] ) );
+				 update_user_meta( $customer_id, 'billing_phone', sanitize_text_field( $_POST['billing_phone'] ) );
+				 $this->onyx_post_user_data_to_erp($customer_id,sanitize_text_field( $_POST['billing_phone'] ) );
 				 update_user_meta( $customer_id, 'onyx_mobile_activation_code',$mobileValidationCode);
 				 update_user_meta( $customer_id, 'onyx_mobile_valid', 'no' );
 				 $onyx_api_sync = new Onyx_Admin_API_Sync( $this->plugin_name, $this->version);
 				 $apiSettings = $onyx_api_sync->get_API_settings();
-				 $postfields = array('service'=>'SendSMSMessage','values'=>array("Mobile"=>$_POST['onyx_mobile_number'],'Message'=>$mobileValidationCode));
-				 $curl = curl_init();
-					curl_setopt_array($curl, array(
-					  CURLOPT_URL => $apiSettings['api_uri'],
-					  CURLOPT_RETURNTRANSFER => true,
-					  CURLOPT_ENCODING => "",
-					  CURLOPT_MAXREDIRS => 10,
-					  CURLOPT_TIMEOUT => 30,
-					  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-					  CURLOPT_CUSTOMREQUEST => "POST",
-					  CURLOPT_POSTFIELDS => json_encode($postfields),
-					  CURLOPT_HTTPHEADER => array(
-					    "Cache-Control: no-cache",
-					    "Content-Type: application/json",
-					    "Postman-Token: 4f264250-f59d-4215-a2b0-ac19236610b3"
-					  ),
-					));
-					$response = curl_exec($curl);
-					$err = curl_error($curl);
-					curl_close($curl);
+//				 $postfields = array('service'=>'SendSMSMessage','values'=>array("Mobile"=>$_POST['onyx_mobile_number'],'Message'=>$mobileValidationCode));
+//				 $curl = curl_init();
+//					curl_setopt_array($curl, array(
+//					  CURLOPT_URL => $apiSettings['api_uri'],
+//					  CURLOPT_RETURNTRANSFER => true,
+//					  CURLOPT_ENCODING => "",
+//					  CURLOPT_MAXREDIRS => 10,
+//					  CURLOPT_TIMEOUT => 30,
+//					  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+//					  CURLOPT_CUSTOMREQUEST => "POST",
+//					  CURLOPT_POSTFIELDS => json_encode($postfields),
+//					  CURLOPT_HTTPHEADER => array(
+//					    "Cache-Control: no-cache",
+//					    "Content-Type: application/json",
+//					    "Postman-Token: 4f264250-f59d-4215-a2b0-ac19236610b3"
+//					  ),
+//					));
+//					$response = curl_exec($curl);
+//					$err = curl_error($curl);
+//					curl_close($curl);
+//            $apiKey = 'RZ7/9tNvEDk-FUs3IrMT6U1pzQYeJ0lZGXiou7NRRk';
+//
+//            // Message details
+//            $numbers = array($_POST['billing_phone']);
+//            $sender = urlencode('website acttivation key');
+//            $message = rawurlencode('your acctivation code'.$mobileValidationCode);
+//
+//            $numbers = implode(',', $numbers);
+//
+//            // Prepare data for POST request
+//            $data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
+//
+//            // Send the POST request with cURL
+//            $ch = curl_init();
+//            curl_setopt($ch, CURLOPT_URL, 'https://api.txtlocal.com/send/');
+//            curl_setopt($ch, CURLOPT_POST, true);
+//            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+//            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+//            $response = curl_exec($ch);
+//            if ($response === FALSE) {
+//                $response =  "cURL Error: " . curl_error($ch);
+//            }
+//            curl_close($ch);
+//            // Process your response here
+//            echo $response;
 
 
     	}
@@ -198,13 +224,12 @@ class Onyx_Public {
     return $redirect_to;
 	}
 
-    public function onyx_post_user_data_to_erp($user_id){
+    public function onyx_post_user_data_to_erp($user_id,$phone){
         if( ! $user_id ) return;
         $user_data = get_userdata($user_id );
         $user_meta = get_user_meta($user_id);
 
-        if (! $user_meta['billing_phone'][0] ) return;
-        if (! $user_meta['billing_country'][0] ) return;
+        if (! $phone ) return;
 
         $onyx_api_sync = new Onyx_Admin_API_Sync( $this->plugin_name, $this->version);
         $apiSettings = $onyx_api_sync->get_API_settings();
@@ -214,7 +239,7 @@ class Onyx_Public {
             'ActivityType'	   =>'1',
             'CompanyName'   =>'CompanyName',
             'Email'			=> $user_data->user_email,
-            'Mobile'		=> $user_meta['billing_phone'][0],
+            'Mobile'		=> $phone,
             'Name'          => $user_data->nickname,
             'Password'      => '',
             'CountryCode'	=> '1',
@@ -223,10 +248,8 @@ class Onyx_Public {
         );
         $isOrderPushed = $onyx_api_sync->push_records($postOptions);
         if($isOrderPushed->SingleObjectHeader!=null){
-            echo 'success';
-        }else{
-            echo 'fail';
 
+        }else{
             //	echo 'Opps! there might be some issue wile posting order';
             // wp_mail( $adminEmail, 'ERP Order posting Failed ',"Please login to admin panel and check the issue while posting order to ERP. Order status is set to 'Pending Posting To ERP'");
         }
@@ -328,5 +351,24 @@ class Onyx_Public {
 		 echo 'Order Already Posted to ERP';
 	 }
  }
+
+
+ function wooc_extra_register_fields() {?>
+        <p class="form-row form-row-wide">
+            <label for="reg_billing_phone"><?php _e( 'Phone', 'woocommerce' ); ?></label>
+            <input type="text" class="input-text" name="billing_phone" id="reg_billing_phone" value="<?php esc_attr_e( $_POST['billing_phone'] ); ?>" />
+        </p>
+        <p class="form-row form-row-first">
+            <label for="reg_billing_first_name"><?php _e( 'First name', 'woocommerce' ); ?><span class="required">*</span></label>
+            <input type="text" class="input-text" name="billing_first_name" id="reg_billing_first_name" value="<?php if ( ! empty( $_POST['billing_first_name'] ) ) esc_attr_e( $_POST['billing_first_name'] ); ?>" />
+        </p>
+        <p class="form-row form-row-last">
+            <label for="reg_billing_last_name"><?php _e( 'Last name', 'woocommerce' ); ?><span class="required">*</span></label>
+            <input type="text" class="input-text" name="billing_last_name" id="reg_billing_last_name" value="<?php if ( ! empty( $_POST['billing_last_name'] ) ) esc_attr_e( $_POST['billing_last_name'] ); ?>" />
+        </p>
+        <div class="clear"></div>
+        <?php
+    }
+
 
 }// end Class Code
