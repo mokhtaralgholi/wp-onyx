@@ -133,6 +133,7 @@ class Onyx {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-api-sync.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-api-terms-sync.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-api-product-sync.php';
+    require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-wpml-product-sync.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-api-orders-sync.php';
 
 

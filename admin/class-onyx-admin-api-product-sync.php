@@ -31,7 +31,6 @@ class Onyx_Admin_API_Product_Sync {
 	 */
 	private $plugin_name;
 	private $parent_term;
-
 	/**
 	 * The version of this plugin.
 	 *
@@ -42,7 +41,7 @@ class Onyx_Admin_API_Product_Sync {
 	private $version;
 	private $doSyncModules;
 	private $settingPages;
-
+  private $sitepress;
 	/**
 	 * Initialize the class and set its properties.
 	 *
@@ -53,9 +52,11 @@ class Onyx_Admin_API_Product_Sync {
 	public function __construct( $plugin_name, $version ) {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+
 		$this->ApiSyncClass = new Onyx_Admin_API_Sync($this->plugin_name,$this->version);
 		$this->ApisettingClass = new Onyx_Settings_Pages($this->plugin_name,$this->version);
-
+    global $sitepress;
+    $this->sitepress = $sitepress;
 	}
 	public function get_erp_products(){
 		$opt=array(
@@ -79,16 +80,19 @@ class Onyx_Admin_API_Product_Sync {
 	public function process_erp_products($products){
 		$productslog=array();
 		$pcount =0;
-		//echo'<pre>'; print_r($products); echo '</pre>'; exit;
+    $Onyx_WPML_Product_Sync = new Onyx_wpml_Product_Sync($this->plugin_name,$this->version);
 		foreach($products as $product){
 			$maybeExsist = $this->get_product_by_code($product->Code,$product->Unit);
-			//echo'<pre>'; print_r($maybeExsist); echo '</pre>'; //exit;
+
 			if(count($maybeExsist)==0){
 				 $maybeAdded = $this->add_product($product);
 				 if($maybeAdded){
 					 $productslog['added'][$pcount]['erpcode']=$product->Code;
 					 $productslog['added'][$pcount]['time']=time();
 					 $productslog['added'][$pcount]['woopid']=$maybeAdded;
+					 if ($this->sitepress) {
+             $Onyx_WPML_Product_Sync->wmpl_sync_product($product, $maybeAdded);
+           }
 				 }
 		  }else{
 				 $maybeUpdated =  $this->update_product($product,$maybeExsist[0]->ID);
