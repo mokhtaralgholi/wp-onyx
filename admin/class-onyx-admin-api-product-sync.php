@@ -1,7 +1,7 @@
 <?php
 
 /**
- * The admin-specific functionality of the plugin.
+ * The admin-specific functionality of the plugin for products.
  *
  * @link       http://aerezona.net/hassan
  * @since      1.0.0
