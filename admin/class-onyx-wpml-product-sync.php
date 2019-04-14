@@ -67,5 +67,26 @@ class Onyx_wpml_Product_Sync
     $this->sitepress->set_element_language_details( $product_id, 'post_' . $post_type, $trid, $second_lang_wpml );
   }
 
+  public function wmpl_update_product ($product, $product_id) {
+    $product_code = $product->Code;
+    $second_lang = $this->ApisettingClass->get_second_language_code();
+    $opt=array(
+      "service"=>"GetItemsOnlineList",
+      "prams"=>'&groupCode=-1'.
+        '&mainGroupCode=-1'.
+        '&subGroupCode=-1'.
+        '&assistantGroupCode=-1'.
+        '&detailGroupCode=-1'.
+        '&wareHouseCode=-1'.
+        '&pageNumber=-1'.
+        '&rowsCount=-1'.
+        '&searchValue='.$product_code.
+        '&orderBy=-1'.
+        '&sortDirection=-1');
+    $products = $this->ApiSyncClass->get_records($opt, $second_lang);
+    $product_id = $this->Onyx_Admin_API_Product_Sync->update_product($products->MultipleObjectHeader[0],$product_id);
+
+  }
+
 
 }

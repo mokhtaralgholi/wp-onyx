@@ -100,6 +100,9 @@ class Onyx_Admin_API_Product_Sync {
 					 $productslog['updated'][$pcount]['erpcode']=$product->Code;
 					 $productslog['updated'][$pcount]['time']=time();
 					 $productslog['updated'][$pcount]['woopid']=$maybeExsist[0]->ID;
+           if ($this->sitepress && $maybeExsist[1]->ID ) {
+             $Onyx_WPML_Product_Sync->wmpl_sync_product($product, $maybeExsist[1]->ID);
+           }
 				 }
 			}
 			$pcount++;
