@@ -667,9 +667,22 @@ class Onyx_Settings_Pages {
     public function get_second_language_code () {
       $languages = apply_filters( 'wpml_active_languages', NULL, 'orderby=id&order=desc' );
       $second_language = 2;
-      if ($languages[1] &&  $this->languages_code[$languages[1]]) {
-        $second_language = $this->languages_code[$languages[1]];
+      $key = array_keys($languages)[1];
+      $second_language_wpml = $languages[$key]['code'];
+      $second_language_code = $this->languages_code[$second_language_wpml];
+      if ($second_language_wpml &&  $second_language_code ) {
+        $second_language = $second_language_code;
       }
       return $second_language;
     }
+
+    public function get_second_language() {
+      $languages = apply_filters( 'wpml_active_languages', NULL, 'orderby=id&order=desc' );
+      $key = array_keys($languages)[1];
+      $second_language_wpml = $languages[$key]['code'];
+      $second_language_code = $this->languages_code[$second_language_wpml];
+      if ($second_language_wpml &&  $second_language_code ) {
+        return $second_language_wpml;
+      }
+      }
 }

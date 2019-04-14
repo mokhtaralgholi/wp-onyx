@@ -44,8 +44,9 @@ class Onyx_wpml_Product_Sync
 
   public function wmpl_sync_product ($product, $ref_product_id) {
     $post_type = 'product';
-    $product_code = $product->code;
+    $product_code = $product->Code;
     $second_lang = $this->ApisettingClass->get_second_language_code();
+    $second_lang_wpml = $this->ApisettingClass->get_second_language();
     $opt=array(
       "service"=>"GetItemsOnlineList",
       "prams"=>'&groupCode=-1'.
@@ -54,7 +55,6 @@ class Onyx_wpml_Product_Sync
         '&assistantGroupCode=-1'.
         '&detailGroupCode=-1'.
         '&wareHouseCode=-1'.
-        '&searchValue=-1'.
         '&pageNumber=-1'.
         '&rowsCount=-1'.
         '&searchValue='.$product_code.
@@ -64,7 +64,7 @@ class Onyx_wpml_Product_Sync
     $product_id = $this->Onyx_Admin_API_Product_Sync->add_product($products->MultipleObjectHeader[0]);
 
     $trid = $this->sitepress->get_element_trid( $ref_product_id, 'post_' . $post_type );
-    $this->sitepress->set_element_language_details( $product_id, 'post_' . $post_type, $trid, $second_lang );
+    $this->sitepress->set_element_language_details( $product_id, 'post_' . $post_type, $trid, $second_lang_wpml );
   }
 
 
