@@ -31,6 +31,13 @@ class Onyx_Settings_Pages {
 	 */
 	private $plugin_name;
 
+	public $languages_code = array(
+        'ar' => 1,
+        'en' => 2,
+        'fr' => 3,
+        'tr' => 4
+    );
+
 	/**
 	 * The version of this plugin.
 	 *
@@ -206,7 +213,7 @@ class Onyx_Settings_Pages {
 			 array('key'=>'onyx_accounting_unit_number','title'=>'Accounting Unit'),
 			 array('key'=>'onyx_branch_number','title'=>'Branch'),
 			 array('key'=>'onyx_warehouse_number','title'=>'Warehouse'),
-			 array('key'=>'onyx_language_number','title'=>'Language'),
+			 // array('key'=>'onyx_language_number','title'=>'Language'), wpml integration
 			 array('key'=>'onyx_shipping_method_number','title'=>'Shipping Method'),
 			 array('key'=>'onyx_sms_uri','title'=>'SMS Url','type'=>'url'),
 			 array('key'=>'onyx_images_uri','title'=>'Images Base Url','type'=>'url'),
@@ -647,4 +654,35 @@ class Onyx_Settings_Pages {
 		}
 	  return $schedules;
  	}
+ 	public function get_default_language_code () {
+        global $sitepress;
+        $default_language_erp_code = 1;
+        if ($sitepress) {
+            $default_language = $sitepress->get_default_language();
+            $default_language_erp_code = $this->languages_code[$default_language];
+        }
+        return $default_language_erp_code;
+    }
+
+    public function get_second_language_code () {
+      $languages = apply_filters( 'wpml_active_languages', NULL, 'orderby=id&order=desc' );
+      $second_language = 2;
+      $key = array_keys($languages)[1];
+      $second_language_wpml = $languages[$key]['code'];
+      $second_language_code = $this->languages_code[$second_language_wpml];
+      if ($second_language_wpml &&  $second_language_code ) {
+        $second_language = $second_language_code;
+      }
+      return $second_language;
+    }
+
+    public function get_second_language() {
+      $languages = apply_filters( 'wpml_active_languages', NULL, 'orderby=id&order=desc' );
+      $key = array_keys($languages)[1];
+      $second_language_wpml = $languages[$key]['code'];
+      $second_language_code = $this->languages_code[$second_language_wpml];
+      if ($second_language_wpml &&  $second_language_code ) {
+        return $second_language_wpml;
+      }
+      }
 }
