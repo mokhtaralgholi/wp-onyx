@@ -38,6 +38,7 @@ class Onyx_wpml_Product_Sync
     $this->ApiSyncClass = new Onyx_Admin_API_Sync($this->plugin_name,$this->version);
     $this->ApisettingClass = new Onyx_Settings_Pages($this->plugin_name,$this->version);
     $this->Onyx_Admin_API_Product_Sync = new Onyx_Admin_API_Product_Sync($this->plugin_name,$this->version);
+    $this->Onyx_Admin_API_Terms_Sync = new Onyx_Admin_API_Terms_Sync($this->plugin_name,$this->version);
     global $sitepress;
     $this->sitepress = $sitepress;
   }
@@ -86,6 +87,29 @@ class Onyx_wpml_Product_Sync
     $products = $this->ApiSyncClass->get_records($opt, $second_lang);
     $product_id = $this->Onyx_Admin_API_Product_Sync->update_product($products->MultipleObjectHeader[0],$product_id);
 
+  }
+
+  public function wmpl_sync_category ($term, $ref_term_id) {
+    $post_type = 'product_cat';
+    $term_code = $term->Code;
+    $second_lang = $this->ApisettingClass->get_second_language_code();
+    $second_lang_wpml = $this->ApisettingClass->get_second_language();
+    $opt=array(
+      "service"=>"GetGroupDetails",
+      "prams"  =>'&searchValue=-1'.
+        '&pageNumber=-1'.
+        '&rowsCount=-1'.
+        '&orderBy=-1'.
+        '&searchValue='.$term_code.
+        '&sortDirection=-1'
+    );
+    $obj = $this->ApiSyncClass->get_records($opt, $second_lang);
+    $obj = $this->Onyx_Admin_API_Terms_Sync->set_groups_data($obj);
+    $term = wp_insert_term($obj->Name,'product_cat');
+//    $product_id = $this->Onyx_Admin_API_Terms_Sync->add_product($products->MultipleObjectHeader[0]);
+//
+//    $trid = $this->sitepress->get_element_trid( $ref_term_id, 'tax_' . $post_type );
+//    $this->sitepress->set_element_language_details( $product_id, 'tax_' . $post_type, $trid, $second_lang_wpml );
   }
 
 
