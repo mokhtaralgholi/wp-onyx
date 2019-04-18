@@ -105,10 +105,24 @@ class Onyx_Public {
 	}
   public function onyx_verify_mobile_callback(){
 		extract($_REQUEST);
-		$maybeUser = get_user_by('onyx_mobile_number',$mobilecode);
-		if($maybeUser){
-			delete_user_meta( $maybeUser->ID, 'onyx_mobile_activation_code');
+		// $maybeUser = get_user_by('onyx_mobile_activation_code',$mobilecode);
+        $maybeUser = reset(
+          get_users(
+            array(
+              'meta_key' => 'onyx_mobile_activation_code',
+              'meta_value' => $mobilecode,
+              'number' => 1,
+              'count_total' => false
+            )
+          )
+        );
+		if($maybeUser && $mobilecode){
+          delete_user_meta( $maybeUser->ID, 'onyx_mobile_activation_code');
 		  update_user_meta( $maybeUser->ID, 'onyx_mobile_valid', 'yes' );
+		  $phone = get_user_meta($maybeUser->ID , 'billing_phone' , true);
+          $this->onyx_post_user_data_to_erp($maybeUser->ID ,$phone);
+          echo '<div class="row" style="clear:all">';
+          echo '<h2>Mobile Verified</h2>';
 		}else{
 			echo '<div class="row" style="clear:all">';
 			  echo '<h2>Mobile Verification</h2>';
@@ -125,7 +139,7 @@ class Onyx_Public {
 		?>
        <p class="form-row form-row-wide">
        <label for="reg_billing_phone"><?php _e( 'Mobile Number', 'woocommerce' ); ?><span class="required">*</span></label>
-       <input type="tel" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+       <input type="tel"
               required class="input-text" name="billing_phone" id="reg_billing_phone" value="<?php esc_attr_e($mobileNumber); ?>" />
        </p>
 			<?php
@@ -139,9 +153,8 @@ class Onyx_Public {
 	public function wooc_save_mobilenumber_field($customer_id){
 		if ( isset( $_POST['billing_phone'] ) ) {
 				// $apiSettings = $onyx_api_sync->get_API_settings();
-			   $mobileValidationCode = $this->randomString(6);
+			   $mobileValidationCode = $this->randomString(4);
 				 update_user_meta( $customer_id, 'billing_phone', sanitize_text_field( $_POST['billing_phone'] ) );
-				 $this->onyx_post_user_data_to_erp($customer_id,sanitize_text_field( $_POST['billing_phone'] ) );
 				 update_user_meta( $customer_id, 'onyx_mobile_activation_code',$mobileValidationCode);
 				 update_user_meta( $customer_id, 'onyx_mobile_valid', 'no' );
 				 $onyx_api_sync = new Onyx_Admin_API_Sync( $this->plugin_name, $this->version);
@@ -166,41 +179,46 @@ class Onyx_Public {
 //					$response = curl_exec($curl);
 //					$err = curl_error($curl);
 //					curl_close($curl);
-//            $apiKey = 'RZ7/9tNvEDk-FUs3IrMT6U1pzQYeJ0lZGXiou7NRRk';
-//
-//            // Message details
-//            $numbers = array($_POST['billing_phone']);
-//            $sender = urlencode('website acttivation key');
-//            $message = rawurlencode('your acctivation code'.$mobileValidationCode);
-//
-//            $numbers = implode(',', $numbers);
-//
-//            // Prepare data for POST request
-//            $data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
-//
-//            // Send the POST request with cURL
-//            $ch = curl_init();
-//            curl_setopt($ch, CURLOPT_URL, 'https://api.txtlocal.com/send/');
-//            curl_setopt($ch, CURLOPT_POST, true);
-//            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-//            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//            $response = curl_exec($ch);
-//            if ($response === FALSE) {
-//                $response =  "cURL Error: " . curl_error($ch);
-//            }
-//            curl_close($ch);
-//            // Process your response here
-//            echo $response;
 
 
+            $onyx_sms_api_parameter_name = $apiSettings['sms_api_parameter_name'] ? $apiSettings['sms_api_parameter_name'] : 'apikey';
+            $onyx_sms_number_parameter_name = $apiSettings['sms_number_parameter_name'] ? $apiSettings['sms_number_parameter_name'] : 'numbers';
+            $onyx_sms_sender_parameter_name = $apiSettings['sms_sender_parameter_name'] ? $apiSettings['sms_sender_parameter_name'] : 'sender';
+            $onyx_sms_message_parameter_name = $apiSettings['sms_message_parameter_name'] ? $apiSettings['sms_message_parameter_name'] : 'message';
+            $onyx_sms_uri = $apiSettings['sms_uri'] ? $apiSettings['sms_uri'] : 'https://api.txtlocal.com/send/';
+
+            // Message details
+            $numbers = array($_POST['billing_phone']);
+            $message = rawurlencode('your acctivation code'.$mobileValidationCode);
+            $numbers = implode(',', $numbers);
+
+            // Prepare data for POST request
+            $data = array(
+              $onyx_sms_api_parameter_name => $apiSettings['sms_api_value'],
+              $onyx_sms_number_parameter_name => $numbers,
+              $onyx_sms_sender_parameter_name => $apiSettings['sms_sender_parameter_value'],
+              $onyx_sms_message_parameter_name => $message
+            );
+
+            // Send the POST request with cURL
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $onyx_sms_uri);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $response = curl_exec($ch);
+            if ($response === FALSE) {
+                $response =  "cURL Error: " . curl_error($ch);
+            }
+            curl_close($ch);
     	}
 	}
+
 	public function onyx_login_mobile_activation_check($user, $username, $password){
 		if( !is_wp_error( $user ) ) {
         if( !empty( $_POST ) ) {
-					$maybeUser = get_user_by('login',$username);
 
-					if($maybeUser && !user_can( $maybeUser->ID, 'manage_options' )){
+            if(!user_can( $maybeUser->ID, 'manage_options' )){
 						$maybeActive = get_user_meta($maybeUser->ID,'onyx_mobile_valid','yes');
             if( 'yes' !== $maybeActive ) {
                 $error = new WP_Error();
@@ -214,7 +232,7 @@ class Onyx_Public {
 	}
 	public  function randomString($length)
 	{
-	  return bin2hex(openssl_random_pseudo_bytes($length));
+	  return rand(pow(10, $length-1), pow(10, $length)-1);;
 	}
 	public function onyx_wc_registration_redirect($redirect_to){
 		$maybeExist = get_page_by_title('Verify Mobile');
