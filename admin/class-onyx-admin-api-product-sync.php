@@ -1,7 +1,7 @@
 <?php
 
 /**
- * The admin-specific functionality of the plugin.
+ * The admin-specific functionality of the plugin for products.
  *
  * @link       http://aerezona.net/hassan
  * @since      1.0.0
@@ -31,7 +31,6 @@ class Onyx_Admin_API_Product_Sync {
 	 */
 	private $plugin_name;
 	private $parent_term;
-
 	/**
 	 * The version of this plugin.
 	 *
@@ -42,7 +41,7 @@ class Onyx_Admin_API_Product_Sync {
 	private $version;
 	private $doSyncModules;
 	private $settingPages;
-
+  private $sitepress;
 	/**
 	 * Initialize the class and set its properties.
 	 *
@@ -53,9 +52,11 @@ class Onyx_Admin_API_Product_Sync {
 	public function __construct( $plugin_name, $version ) {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+
 		$this->ApiSyncClass = new Onyx_Admin_API_Sync($this->plugin_name,$this->version);
 		$this->ApisettingClass = new Onyx_Settings_Pages($this->plugin_name,$this->version);
-
+    global $sitepress;
+    $this->sitepress = $sitepress;
 	}
 	public function get_erp_products(){
 		$opt=array(
@@ -73,21 +74,25 @@ class Onyx_Admin_API_Product_Sync {
 							 '&sortDirection=-1');
 		$products = $this->ApiSyncClass->get_records($opt);
 		//echo '<pre>'; print_r($products); echo '</pre>';
+        $this->sync_products_attributes();
 		return $products->MultipleObjectHeader;
 	}
 	public function process_erp_products($products){
 		$productslog=array();
 		$pcount =0;
-		//echo'<pre>'; print_r($products); echo '</pre>'; exit;
+    $Onyx_WPML_Product_Sync = new Onyx_wpml_Product_Sync($this->plugin_name,$this->version);
 		foreach($products as $product){
 			$maybeExsist = $this->get_product_by_code($product->Code,$product->Unit);
-			//echo'<pre>'; print_r($maybeExsist); echo '</pre>'; //exit;
+
 			if(count($maybeExsist)==0){
 				 $maybeAdded = $this->add_product($product);
 				 if($maybeAdded){
 					 $productslog['added'][$pcount]['erpcode']=$product->Code;
 					 $productslog['added'][$pcount]['time']=time();
 					 $productslog['added'][$pcount]['woopid']=$maybeAdded;
+					 if ($this->sitepress) {
+             $Onyx_WPML_Product_Sync->wmpl_sync_product($product, $maybeAdded);
+           }
 				 }
 		  }else{
 				 $maybeUpdated =  $this->update_product($product,$maybeExsist[0]->ID);
@@ -95,10 +100,14 @@ class Onyx_Admin_API_Product_Sync {
 					 $productslog['updated'][$pcount]['erpcode']=$product->Code;
 					 $productslog['updated'][$pcount]['time']=time();
 					 $productslog['updated'][$pcount]['woopid']=$maybeExsist[0]->ID;
+           if ($this->sitepress && $maybeExsist[1]->ID ) {
+             $Onyx_WPML_Product_Sync->wmpl_sync_product($product, $maybeExsist[1]->ID);
+           }
 				 }
 			}
 			$pcount++;
 		}
+        $this->sync_products_variation();
 		return $productslog;
 	}
 	public function  set_groups_data($obj){
@@ -160,7 +169,20 @@ class Onyx_Admin_API_Product_Sync {
 				'post_type'    => 'product'
 		);
 		$isUpdated = wp_update_post($updProduct);
-		if(!is_wp_error($isUpdated)){
+
+        $args = array(
+            'post_type' => 'product_variation',
+            'post_status' => 'publish',
+            'numberposts' => -1,
+            'post_parent' => $productID
+        );
+        $variations = get_posts($args);
+
+        foreach ($variations as $variate) {
+            wp_delete_post($variate->ID , true);
+        }
+
+        if(!is_wp_error($isUpdated)){
 		 update_post_meta( $productID, '_price',$product->Price);
 		 update_post_meta( $productID, '_regular_price',$product->Price);
 		 //update_post_meta($productID, '_sku', $product->Code.'-'.$product->Unit);
@@ -287,6 +309,250 @@ class Onyx_Admin_API_Product_Sync {
 		//$src = wp_get_attachment_url( $id );
 	}
 
+	// get Products Attributes
+    public function sync_products_attributes() {
+        $opt=array(
+            "service"=>"GetItemsAttachments",
+            "prams"=>
+                '&searchValue=-1'.
+                '&pageNumber=-1'.
+                '&rowsCount=-1'.
+                '&orderBy=-1'.
+                '&sortDirection=-1'
+        );
+        $response = $this->ApiSyncClass->get_records($opt);
+        //echo '<pre>'; print_r($products); echo '</pre>';
+        if ($response->SingleObjectHeader ==! null) {
+            $attributes = $response->SingleObjectHeader->Items_Attach_mst;
+            $terms = $response->SingleObjectHeader->Items_Attach_Dtl;
+            for ($i = 0; $i<sizeof($attributes); $i++) {
+                $this->create_product_attribute($attributes[$i]->ATTCH_A_NAME, $attributes[$i]->ATTCH_NO);
+            }
+            for ($j = 0; $j<sizeof($terms); $j++) {
+                $this->create_product_attribute_term($terms[$j]->ATTCH_DESC_A_NAME, $terms[$j]->ATTCH_NO, $terms[$j]->ATTCH_DESC_NO);
+            }
+        } else {
+            echo 'error get products attributes from erp';
+        }
 
 
+    }
+
+    // create product attributes
+    public function create_product_attribute( $label_name , $slug ){
+        global $wpdb;
+
+        $slug = sanitize_title( $slug);
+
+        if ( strlen( $slug ) >= 28 ) {
+            return new WP_Error( 'invalid_product_attribute_slug_too_long', sprintf( __( 'Name "%s" is too long (28 characters max). Shorten it, please.', 'woocommerce' ), $slug ), array( 'status' => 400 ) );
+        } elseif ( wc_check_if_attribute_name_is_reserved( $slug ) ) {
+            return new WP_Error( 'invalid_product_attribute_slug_reserved_name', sprintf( __( 'Name "%s" is not allowed because it is a reserved term. Change it, please.', 'woocommerce' ), $slug ), array( 'status' => 400 ) );
+        } elseif ( taxonomy_exists( wc_attribute_taxonomy_name( $slug) ) ) {
+            return new WP_Error( 'invalid_product_attribute_slug_already_exists', sprintf( __( 'Name "%s" is already in use. Change it, please.', 'woocommerce' ), $label_name ), array( 'status' => 400 ) );
+        }
+
+        $attribute = array(
+            'attribute_label'   => $label_name,
+            'attribute_name'    => $slug,
+            'attribute_type'    => 'select',
+            'attribute_orderby' => 'menu_order',
+            'attribute_public'  => 0,
+        );
+        $wpdb->insert( $wpdb->prefix . 'woocommerce_attribute_taxonomies', $attribute );
+
+        $return = array(
+            'attribute_name'     => $slug,
+            'attribute_taxonomy' => 'pa_' . $slug,
+            'attribute_id'       => $wpdb->insert_id,
+            'term_ids'           => array(),
+        );
+
+        // Register the taxonomy.
+        $name  = wc_attribute_taxonomy_name( $slug );
+        $label = $slug;
+
+        delete_transient( 'wc_attribute_taxonomies' );
+
+        register_taxonomy( 'pa_' . $slug, array( 'product' ), array(
+            'labels' => array(
+                'name' => $slug,
+            ),
+        ) );
+    }
+
+    // create term attribute
+    public function create_product_attribute_term ($label_name , $attribute, $slug) {
+
+	    $args = array(
+	        'slug' => $slug
+        );
+        if (!term_exists( $slug, 'pa_'.$attribute)) {
+            wp_insert_term( $label_name, 'pa_'.$attribute, $args );
+        }
+    }
+
+    // sync products variations
+    public function sync_products_variation() {
+        $opt=array(
+            "service"=>"GetItemAttachmentAvailableQuantity",
+            "prams"=>
+                '&searchValue=-1'.
+                '&pageNumber=-1'.
+                '&rowsCount=-1'.
+                '&orderBy=-1'.
+                '&sortDirection=-1'
+        );
+        $variation_data = array(
+            'attributes' => array(
+            ),
+            'stock_qty'     => 0
+        );
+
+        $response = $this->ApiSyncClass->get_records($opt);
+        if ($response->MultipleObjectHeader ==! null) {
+            $variation = $response->MultipleObjectHeader;
+            for ($i = 0; $i<sizeof($variation); $i++) {
+                $wc_product_id = $this->get_wc_products_id($variation[$i]->I_CODE);
+                $this->add_single_product_attribute($wc_product_id);
+                $variation_data = array(
+                    'attributes' => array(
+                        $variation[$i]->ATTCH_DESC_NO1 => $variation[$i]->ATTCH_NO1,
+                        $variation[$i]->ATTCH_DESC_NO2 => $variation[$i]->ATTCH_NO2,
+                        $variation[$i]->ATTCH_DESC_NO3 => $variation[$i]->ATTCH_NO3,
+                        $variation[$i]->ATTCH_DESC_NO4 => $variation[$i]->ATTCH_NO4,
+                        $variation[$i]->ATTCH_DESC_NO5 => $variation[$i]->ATTCH_NO5
+                    ),
+                    'stock_qty'     => $variation[$i]->AVL_QTY,
+                    'erp_id'        => $variation[$i]->FLEX_NO
+                );
+                $this->create_product_variation($wc_product_id, $variation_data);
+            }
+        } else {
+            echo 'error get products variations from erp';
+        }
+
+    }
+
+    public function get_wc_products_id( $value ) {
+        $products = get_posts(
+            array(
+                'numberposts' => -1,
+                'post_type'		=> 'product',
+                )
+        );
+        $id = 0;
+        foreach ($products as $product) {
+            $id = $product->ID;
+            if (get_post_meta($id,'_onyxtab_code',true) === $value ) {
+                break;
+            }
+        }
+        return $id ;
+    }
+
+    public function add_single_product_attribute ($product_id) {
+	    for ($i = 1; $i<6; $i++) {
+            $terms = get_terms([
+                'taxonomy' => 'pa_'.$i,
+                'hide_empty' => false,
+            ]);
+            for ($j=0; $j<sizeof($terms); $j++) {
+                $termsValues[$j] = $terms[$j]->name;
+            }
+            wp_set_object_terms( $product_id, $termsValues, 'pa_'.$i );
+            $taxOptions[$i] = Array(
+                'name' => 'pa_'.$i,
+                'value' => '',
+                'is_visible' => '1',
+                'is_variation' => '1',
+                'is_taxonomy' => '1'
+            );
+        }
+        update_post_meta($product_id, '_product_attributes', $taxOptions);
+    }
+
+    /**
+     * @param $product_id
+     * @param $variation_data
+     */
+    public function create_product_variation ($product_id, $variation_data) {
+        // Get the Variable product object (parent)
+        $product = wc_get_product($product_id);
+
+        if (!taxonomy_exists('product_type')) {
+            register_taxonomy('product_type', array('product_type'));
+        }
+
+        $variation_post = array(
+            'post_title'  => $product->get_title(),
+            'post_name'   => 'product-'.$product_id.'-variation',
+            'post_status' => 'publish',
+            'post_parent' => $product_id,
+            'post_type'   => 'product_variation',
+            'guid'        => $product->get_permalink()
+        );
+        // Creating the product variation
+        $variation_id = wp_insert_post( $variation_post );
+
+        // Get an instance of the WC_Product_Variation object
+        $variation = new WC_Product_Variation( $variation_id );
+
+        // Iterating through the variations attributes
+        $i = 0;
+        foreach ($variation_data['attributes'] as $attribute => $term_slug) {
+            if ($attribute ) {
+            $taxonomy = 'pa_' . $attribute; // The attribute taxonomy
+            $term = get_term_by('slug', $term_slug, $taxonomy);
+            $term_name = $term->name;
+            // If taxonomy doesn't exists we create it (Thanks to Carl F. Corneil)
+            if (!taxonomy_exists($taxonomy)) {
+                register_taxonomy(
+                    $taxonomy,
+                    'product_variation',
+                    array(
+                        'hierarchical' => false,
+                        'label' => ucfirst($taxonomy),
+                        'query_var' => true,
+                        'rewrite' => array('slug' => '$taxonomy'), // The base slug
+                    )
+                );
+            }
+
+            // Check if the Term name exist and if not we create it.
+            if (!term_exists($term_name, $taxonomy))
+                wp_insert_term($term_name, $taxonomy); // Create the term
+
+
+            // Set/save the attribute data in the product variation
+            update_post_meta($variation_id, 'attribute_' . $taxonomy, $term_slug);
+
+        }
+        }
+
+        ## Set/save all other data
+
+        // Prices
+        $variation_price = get_post_meta( $product_id, '_regular_price' ,true);
+        $variation->set_price($variation_price);
+        $variation->set_regular_price($variation_price);
+        $variation->set_sale_price( $variation_price );
+        $variation->set_slug('variation_'.$variation_data['erp_id']);
+
+        // Stock
+        if( ! empty($variation_data['stock_qty']) ){
+            $variation->set_stock_quantity( $variation_data['stock_qty'] );
+            $variation->set_manage_stock(true);
+            $variation->set_stock_status('');
+        } else {
+            $variation->set_manage_stock(false);
+        }
+
+        $variation->set_weight(''); // weight (reseting)
+
+        $variation->save(); // Save the data
+        $product->save();
+        wc_delete_product_transients($variation_id);
+    }
 }
+

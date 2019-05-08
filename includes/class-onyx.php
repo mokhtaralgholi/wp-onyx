@@ -133,6 +133,7 @@ class Onyx {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-api-sync.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-api-terms-sync.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-api-product-sync.php';
+    require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-wpml-product-sync.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-api-orders-sync.php';
 
 
@@ -217,6 +218,7 @@ class Onyx {
 		$this->loader->add_action('woocommerce_registration_redirect', $plugin_public, 'onyx_wc_registration_redirect',10);
 		$this->loader->add_action( 'woocommerce_thankyou',$plugin_public, 'onyx_post_order_data_to_erp', 10, 1 );
         $this->loader->add_action( 'save_post_shop_order',$plugin_public, 'onyx_post_order_data_to_erp', 10, 1 );
+        // $this->loader->add_filter( 'woocommerce_register_form_start',$plugin_public, 'wooc_extra_register_fields' );
         // $this->loader->add_action( 'user_register', $plugin_public,'onyx_post_user_data_to_erp', 10,1 );
 
 	}
