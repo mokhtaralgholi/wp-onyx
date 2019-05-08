@@ -88,5 +88,4 @@ class Onyx_wpml_Product_Sync
 
   }
 
-
 }
