@@ -73,7 +73,7 @@ class Onyx {
 		} else {
 			$this->version = '1.0.0';
 		}
-		$this->plugin_name = 'onyx';
+		$this->plugin_name = 'wp-onyx';
 
 		$this->load_dependencies();
 		$this->set_locale();
@@ -133,9 +133,8 @@ class Onyx {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-api-sync.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-api-terms-sync.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-api-product-sync.php';
-    require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-wpml-product-sync.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-api-orders-sync.php';
-
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-sync-logs.php';
 
 		$this->loader = new Onyx_Loader();
 
@@ -181,12 +180,8 @@ class Onyx {
 		$this->loader->add_action( 'product_cat_edit_form_fields',$onyx_admin_pages, 'product_cat_taxonomy_custom_fields', 10, 2 );
 		$this->loader->add_action( 'woocommerce_admin_order_data_after_billing_address', $onyx_admin_orders_sync_Class,'onyx_display_order_erp_id', 10, 1 );
 		$this->loader->add_action( 'init', $plugin_admin,'register_onyx_erp_posted_order_status' );
-    $this->loader->add_action( 'user_register', $plugin_admin,'onyx_post_user_data_to_erp', 10,1 );
-    $this->loader->add_action( 'profile_update', $plugin_admin,'onyx_post_user_data_to_erp', 10,2 );
-    $this->loader->add_action( 'show_user_profile', $plugin_admin,'extra_profile_fields', 10,1 );
-    $this->loader->add_action( 'edit_user_profile', $plugin_admin,'extra_profile_fields', 10,1 );
-    $this->loader->add_action( 'personal_options_update', $plugin_admin,'save_extra_profile_fields', 10,1 );
-    $this->loader->add_action( 'edit_user_profile_update', $plugin_admin,'save_extra_profile_fields', 10,1 );
+        $this->loader->add_action( 'user_register', $plugin_admin,'onyx_post_user_data_to_erp', 10,1 );
+        $this->loader->add_action( 'profile_update', $plugin_admin,'onyx_post_user_data_to_erp', 10,2 );
 	}
 
 	private function define_admin_filters() {
@@ -221,14 +216,14 @@ class Onyx {
 		$this->loader->add_action( 'woocommerce_created_customer',  $plugin_public, 'wooc_save_mobilenumber_field' );
 		$this->loader->add_action('woocommerce_registration_redirect', $plugin_public, 'onyx_wc_registration_redirect',10);
 		$this->loader->add_action( 'woocommerce_thankyou',$plugin_public, 'onyx_post_order_data_to_erp', 10, 1 );
-		$this->loader->add_action( 'save_post_shop_order',$plugin_public, 'onyx_post_order_data_to_erp', 10, 1 );
+        $this->loader->add_action( 'save_post_shop_order',$plugin_public, 'onyx_post_order_data_to_erp', 10, 1 );
         // $this->loader->add_filter( 'woocommerce_register_form_start',$plugin_public, 'wooc_extra_register_fields' );
         // $this->loader->add_action( 'user_register', $plugin_public,'onyx_post_user_data_to_erp', 10,1 );
 
 	}
 	private function define_public_filters() {
 		$plugin_public = new Onyx_Public( $this->get_plugin_name(), $this->get_version() );
-		// $this->loader->add_filter( 'authenticate', $plugin_public,'onyx_login_mobile_activation_check', 100, 3 );
+		$this->loader->add_filter( 'authenticate', $plugin_public,'onyx_login_mobile_activation_check', 100, 3 );
 
 	}
 

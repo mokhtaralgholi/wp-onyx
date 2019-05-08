@@ -72,7 +72,7 @@ class Onyx_Admin_API_Sync {
     $settingsAPI = $this->ApisettingClass->api_settings();
 		$apivars = array();
 		foreach($settingsAPI as $key){
-			 $apivars[str_replace($this->plugin_name.'_','',$key['key'])] = get_option($key['key']);
+			 $apivars[str_replace('onyx_','',$key['key'])] = get_option($key['key']);
 		}
 		return  $apivars;
 	}
@@ -166,17 +166,11 @@ class Onyx_Admin_API_Sync {
 	}
 
 
-	public function get_records($opt,$lang=null,$method="GET",$contentType=''){
+	public function get_records($opt,$method="GET",$contentType=''){
 		$apiSettings = $this->get_API_settings();
-		if ($lang) {
-		  $lang_code = $lang;
-    } else {
-		  $lang_code = $this->ApisettingClass->get_default_language_code();
-    }
 		$hasPort = parse_url($apiSettings['api_uri'],PHP_URL_PORT);
-		$logFile = WP_PLUGIN_DIR. '/'.$this->plugin_name.'/synclog.txt';
-		$currentlog = file_get_contents( $logFile);			
-		$urlprams =$opt['service'].'?type=ORACLE'.'&year='.$apiSettings["accounting_year"].'&activityNumber='. $apiSettings["accounting_unit_number"].'&languageID='.$lang_code.$opt['prams'];
+		$currentlog = '';
+		$urlprams =$opt['service'].'?type=ORACLE'.'&year='.$apiSettings["accounting_year"].'&activityNumber='. $apiSettings["accounting_unit_number"].'&languageID='.$apiSettings["language_number"].$opt['prams'];
 		$APIuri = rtrim($apiSettings['api_uri'], '/') . '/';
 		$newlog = '==========================API REQUEST ======================= <br />
 		           ['. date('d-m-Y h:i:s').']' . '[API Request] '. $APIuri.$urlprams .'
@@ -210,7 +204,8 @@ class Onyx_Admin_API_Sync {
 				  ==========================ENDS ======================= <br/>'
 				  .$currentlog;
 		}
-		file_put_contents( $logFile,$newlog );
+		$onyxLogs = new Onyx_Admin_Sync_Logs( $this->plugin_name, $this->version);
+		$onyxLogs->save_log($newlog);
 		curl_close($curl);
 			if ($err) {
 				echo $err;
