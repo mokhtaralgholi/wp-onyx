@@ -685,4 +685,5 @@ class Onyx_Settings_Pages {
         return $second_language_wpml;
       }
       }
+
 }
