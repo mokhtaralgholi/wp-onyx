@@ -42,6 +42,7 @@ class Onyx_Admin_API_Product_Sync {
 	private $doSyncModules;
 	private $settingPages;
   private $sitepress;
+
 	/**
 	 * Initialize the class and set its properties.
 	 *
