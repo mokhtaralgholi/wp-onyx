@@ -187,6 +187,7 @@ class Onyx_Public {
             $onyx_sms_message_parameter_name = $apiSettings['sms_message_parameter_name'] ? $apiSettings['sms_message_parameter_name'] : 'message';
             $onyx_sms_uri = $apiSettings['sms_uri'] ? $apiSettings['sms_uri'] : 'https://api.txtlocal.com/send/';
 
+
             // Message details
             $numbers = array($_POST['billing_phone']);
             $message = rawurlencode('your acctivation code'.$mobileValidationCode);
