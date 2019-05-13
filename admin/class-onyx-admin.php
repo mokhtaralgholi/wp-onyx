@@ -210,5 +210,33 @@ public function add_onyx_erp_posted_to_order_statuses( $order_statuses ) {
                 // wp_mail( $adminEmail, 'ERP Order posting Failed ',"Please login to admin panel and check the issue while posting order to ERP. Order status is set to 'Pending Posting To ERP'");
             }
     }
-	
+
+  public function extra_profile_fields( $user ) {
+    $selected =   get_the_author_meta( 'onyx_mobile_valid', $user->ID );
+	    ?>
+      <h3><?php _e('Extra User Details'); ?></h3>
+      <table class="form-table">
+          <tr>
+              <th><label for="gmail">User ERP Statues</label></th>
+              <td>
+                  <select name="onyx_mobile_valid">
+                      <option <?php if($selected == 'yes'){echo("selected");}?> value="yes">Active</option>
+                      <option <?php if($selected == 'no'){echo("selected");}?> value="no">In Active</option>
+                  </select>
+              </br>
+                  <span class="description">Select ERP User Statues.</span>
+              </td>
+          </tr>
+      </table>
+    <?php
+
+  }
+
+  function save_extra_profile_fields( $user_id ) {
+    if ( !current_user_can( 'edit_user', $user_id ) )
+      return false;
+    update_user_meta( $user_id, 'onyx_mobile_valid', $_POST['onyx_mobile_valid'] );
+  }
+
+
 }
