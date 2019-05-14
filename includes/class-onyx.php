@@ -136,6 +136,7 @@ class Onyx {
     require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-wpml-product-sync.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-api-orders-sync.php';
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-admin-sync-logs.php';
+    require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-onyx-api-variations-sync.php';
 
 		$this->loader = new Onyx_Loader();
 
