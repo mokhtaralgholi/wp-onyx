@@ -1,8 +1,15 @@
 <?php
 
 
-  class class_onyx_api_variations_sync
+  class onyx_api_variations_sync
   {
+    /**
+     * The ID of this plugin.
+     *
+     * @since    1.0.0
+     * @access   private
+     * @var      string    $plugin_name    The ID of this plugin.
+     */
     private $plugin_name;
     private $parent_term;
     /**
@@ -33,7 +40,7 @@
       $this->sitepress = $sitepress;
     }
 
-    // get Products Attributes
+     // get Products Attributes
     public function sync_products_attributes() {
       $opt=array(
         "service"=>"GetItemsAttachments",
@@ -285,6 +292,33 @@
       $variation->save(); // Save the data
       $product->save();
       wc_delete_product_transients($variation_id);
+    }
+
+    public function  get_product_by_code($code,$unit){
+      $args = array(
+        'post_type'  => 'product',
+        'meta_query' => array(
+          'relation' => 'AND',
+          array(
+            'key'     => '_onyxtab_code',
+            'value'   => $code,
+            'compare' => '='
+          ),
+          array(
+            'key'     => '_onyxtab_unit',
+            'value'   => $unit,
+            'compare' => '='
+          )
+        )
+      );
+      $search_query = new WP_Query( $args );
+
+      if(isset($search_query->posts)){
+        return $search_query->posts;
+      }else{
+        return null;
+      }
+
     }
 
   }

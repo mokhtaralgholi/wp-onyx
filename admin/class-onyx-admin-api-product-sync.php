@@ -74,7 +74,7 @@ class Onyx_Admin_API_Product_Sync {
 							 '&sortDirection=-1');
 		$products = $this->ApiSyncClass->get_records($opt);
 		//echo '<pre>'; print_r($products); echo '</pre>';
-    $onyx_api_variations_sync = new class_onyx_api_variations_sync($this->plugin_name,$this->version);
+    $onyx_api_variations_sync = new onyx_api_variations_sync($this->plugin_name,$this->version);
     $onyx_api_variations_sync->sync_products_attributes();
 		return $products->MultipleObjectHeader;
 	}
@@ -108,7 +108,7 @@ class Onyx_Admin_API_Product_Sync {
 			}
 			$pcount++;
 		}
-    $onyx_api_variations_sync = new class_onyx_api_variations_sync($this->plugin_name,$this->version);
+    $onyx_api_variations_sync = new onyx_api_variations_sync($this->plugin_name,$this->version);
     $onyx_api_variations_sync->sync_products_variation();
 		return $productslog;
 	}
