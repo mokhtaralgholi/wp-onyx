@@ -66,6 +66,32 @@
         echo 'error get products attributes from erp';
       }
 
+    }
+
+    public function sync_products_attributes_batches () {
+      $opt=array(
+        "service"=>"GetBatchConfigDetails",
+        "prams"=>
+          '&searchValue=-1'.
+          '&pageNumber=-1'.
+          '&rowsCount=-1'.
+          '&orderBy=-1'.
+          '&sortDirection=-1'
+      );
+      $response = $this->ApiSyncClass->get_records($opt);
+      //echo '<pre>'; print_r($products); echo '</pre>';
+      if ($response->SingleObjectHeader ==! null) {
+        $attributes = $response->SingleObjectHeader->IAS_BATCH_COLUMNS_LABELS;
+        $terms = $response->SingleObjectHeader->IAS_BATCH_NO_CONTENTS;
+        for ($i = 0; $i<sizeof($attributes); $i++) {
+          $this->create_product_attribute($attributes[$i]->CAPTION_DET, $i+1);
+        }
+        for ($j = 0; $j<sizeof($terms); $j++) {
+          $this->create_product_attribute_term($terms[$j]->BATCH_DESC_A_NAME, $terms[$j]->COL_NO, $terms[$j]->BATCH_DESC_NO);
+        }
+      } else {
+        echo 'error get products attributes from erp';
+      }
 
     }
 
@@ -177,6 +203,57 @@
 
     }
 
+    public function sync_products_variation_batches() {
+      $opt=array(
+        "service"=>"GetItemsBatchAvailableQuantity",
+        "prams"=>
+          '&searchValue=-1'.
+          '&pageNumber=-1'.
+          '&rowsCount=-1'.
+          '&orderBy=-1'.
+          '&sortDirection=-1'.
+          '&itemCode=-1'.
+          '&batchNumber=-1'
+      );
+
+
+      $variation_data = array(
+        'attributes' => array(
+        ),
+        'stock_qty'     => 0
+      );
+
+      $response = $this->ApiSyncClass->get_records($opt);
+      //echo '<pre>'; print_r($response); echo '</pre>';
+      if ($response->MultipleObjectHeader ==! null) {
+        $variation = $response->MultipleObjectHeader;
+        for ($i = 0; $i<sizeof($variation); $i++) {
+          //$wc_product = $this->get_product_by_code($variation[$i]->I_CODE,"باكت");
+          $wc_product = $this->get_product_by_code($variation[$i]->I_CODE,$variation[$i]->ITM_UNT);
+          if(count($wc_product)>0){
+            $wc_product_id =$wc_product[0]->ID;
+            wp_set_object_terms ($wc_product_id,'variable','product_type', true);
+            $this->add_single_product_attribute($wc_product_id);
+            $single_product_attributes = $this->get_single_product_attributes($variation[$i]->I_CODE,$variation[$i]->BATCH_NO);
+            $variation_data = array(
+              'attributes' => $single_product_attributes,
+              'stock_qty'  => $variation[$i]->AVL_QTY
+            );
+            $this->create_product_variation($wc_product_id, $variation_data);
+            $product = wc_get_product($product_id);
+            WC_Product_Variable::sync( $product_id , 'yes');
+            do_action( 'woocommerce_variable_product_sync_data', $product );
+            delete_transient( 'wc_product_children_' . $product_id );
+            delete_transient( 'wc_var_prices_' . $product_id );
+          }// endig for Matching of product.
+        }
+
+      } else {
+        echo 'error get products variations from erp';
+      }
+
+    }
+
     public function get_wc_products_id( $value ) {
       $products = get_posts(
         array(
@@ -215,6 +292,35 @@
         );
       }
       update_post_meta($product_id, '_product_attributes', $taxOptions);
+    }
+
+    public function get_single_product_attributes($item_code, $batch_no) {
+      $opt=array(
+        "service"=>"GetItemsBatchDetails",
+        "prams"=>
+          '&searchValue=-1'.
+          '&pageNumber=-1'.
+          '&rowsCount=-1'.
+          '&orderBy=-1'.
+          '&sortDirection=-1'.
+          '&itemCode='.$item_code.
+          '&batchNumber='.$batch_no
+      );
+
+      $attributes = array();
+
+      $response = $this->ApiSyncClass->get_records($opt);
+      if ($response->MultipleObjectHeader ==! null) {
+        $variation = $response->MultipleObjectHeader;
+        $attributes = array(
+          $variation[0]->COL_NO1 => $variation[0]->BATCH_DESC_NO1,
+          $variation[0]->COL_NO2 => $variation[0]->BATCH_DESC_NO2,
+          $variation[0]->COL_NO3 => $variation[0]->BATCH_DESC_NO3,
+          $variation[0]->COL_NO4 => $variation[0]->BATCH_DESC_NO4,
+          $variation[0]->COL_NO5 => $variation[0]->BATCH_DESC_NO5
+        );
+      }
+      return $attributes;
     }
 
     /**

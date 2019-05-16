@@ -59,58 +59,58 @@ class Onyx_Admin_API_Product_Sync {
     $this->sitepress = $sitepress;
 	}
 	public function get_erp_products(){
-		$opt=array(
-			"service"=>"GetItemsOnlineList",
-		  "prams"=>'&groupCode=-1'.
-			         '&mainGroupCode=-1'.
-							 '&subGroupCode=-1'.
-							 '&assistantGroupCode=-1'.
-							 '&detailGroupCode=-1'.
-							 '&wareHouseCode=-1'.
-							 '&searchValue=-1'.
-							 '&pageNumber=-1'.
-							 '&rowsCount=-1'.
-							 '&orderBy=-1'.
-							 '&sortDirection=-1');
-		$products = $this->ApiSyncClass->get_records($opt);
+//		$opt=array(
+//			"service"=>"GetItemsOnlineList",
+//		  "prams"=>'&groupCode=-1'.
+//			         '&mainGroupCode=-1'.
+//							 '&subGroupCode=-1'.
+//							 '&assistantGroupCode=-1'.
+//							 '&detailGroupCode=-1'.
+//							 '&wareHouseCode=-1'.
+//							 '&searchValue=-1'.
+//							 '&pageNumber=-1'.
+//							 '&rowsCount=-1'.
+//							 '&orderBy=-1'.
+//							 '&sortDirection=-1');
+//		$products = $this->ApiSyncClass->get_records($opt);
 		//echo '<pre>'; print_r($products); echo '</pre>';
     $onyx_api_variations_sync = new onyx_api_variations_sync($this->plugin_name,$this->version);
-    $onyx_api_variations_sync->sync_products_attributes();
-		return $products->MultipleObjectHeader;
+    $onyx_api_variations_sync->sync_products_attributes_batches();
+		return [];
 	}
 	public function process_erp_products($products){
-		$productslog=array();
-		$pcount =0;
-    $Onyx_WPML_Product_Sync = new Onyx_wpml_Product_Sync($this->plugin_name,$this->version);
-		foreach($products as $product){
-			$maybeExsist = $this->get_product_by_code($product->Code,$product->Unit);
-
-			if(count($maybeExsist)==0){
-				 $maybeAdded = $this->add_product($product);
-				 if($maybeAdded){
-					 $productslog['added'][$pcount]['erpcode']=$product->Code;
-					 $productslog['added'][$pcount]['time']=time();
-					 $productslog['added'][$pcount]['woopid']=$maybeAdded;
-					 if ($this->sitepress) {
-             $Onyx_WPML_Product_Sync->wmpl_sync_product($product, $maybeAdded);
-           }
-				 }
-		  }else{
-				 $maybeUpdated =  $this->update_product($product,$maybeExsist[0]->ID);
-				 if($maybeUpdated){
-					 $productslog['updated'][$pcount]['erpcode']=$product->Code;
-					 $productslog['updated'][$pcount]['time']=time();
-					 $productslog['updated'][$pcount]['woopid']=$maybeExsist[0]->ID;
-           if ($this->sitepress && $maybeExsist[1]->ID ) {
-             $Onyx_WPML_Product_Sync->wmpl_sync_product($product, $maybeExsist[1]->ID);
-           }
-				 }
-			}
-			$pcount++;
-		}
+//		$productslog=array();
+//		$pcount =0;
+//    $Onyx_WPML_Product_Sync = new Onyx_wpml_Product_Sync($this->plugin_name,$this->version);
+//		foreach($products as $product){
+//			$maybeExsist = $this->get_product_by_code($product->Code,$product->Unit);
+//
+//			if(count($maybeExsist)==0){
+//				 $maybeAdded = $this->add_product($product);
+//				 if($maybeAdded){
+//					 $productslog['added'][$pcount]['erpcode']=$product->Code;
+//					 $productslog['added'][$pcount]['time']=time();
+//					 $productslog['added'][$pcount]['woopid']=$maybeAdded;
+//					 if ($this->sitepress) {
+//             $Onyx_WPML_Product_Sync->wmpl_sync_product($product, $maybeAdded);
+//           }
+//				 }
+//		  }else{
+//				 $maybeUpdated =  $this->update_product($product,$maybeExsist[0]->ID);
+//				 if($maybeUpdated){
+//					 $productslog['updated'][$pcount]['erpcode']=$product->Code;
+//					 $productslog['updated'][$pcount]['time']=time();
+//					 $productslog['updated'][$pcount]['woopid']=$maybeExsist[0]->ID;
+//           if ($this->sitepress && $maybeExsist[1]->ID ) {
+//             $Onyx_WPML_Product_Sync->wmpl_sync_product($product, $maybeExsist[1]->ID);
+//           }
+//				 }
+//			}
+//			$pcount++;
+//		}
     $onyx_api_variations_sync = new onyx_api_variations_sync($this->plugin_name,$this->version);
-    $onyx_api_variations_sync->sync_products_variation();
-		return $productslog;
+    $onyx_api_variations_sync->sync_products_variation_batches();
+//		return $productslog;
 	}
 	public function  set_groups_data($obj){
 		$lastchild ='';
