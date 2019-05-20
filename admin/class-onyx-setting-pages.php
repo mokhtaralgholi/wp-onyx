@@ -216,14 +216,15 @@ class Onyx_Settings_Pages {
 			 // array('key'=>'onyx_language_number','title'=>'Language'), wpml integration
 			 array('key'=>'onyx_shipping_method_number','title'=>'Shipping Method'),
 			 array('key'=>'onyx_sms_uri','title'=>'SMS Uri','type'=>'url'),
-             array('key'=>'onyx_sms_api_parameter_name','title'=>'SMS API Key Parameter Name'),
-             array('key'=>'onyx_sms_api_value','title'=>'SMS API Value'),
-             array('key'=>'onyx_sms_number_parameter_name','title'=>'SMS Number Parameter Name'),
-             array('key'=>'onyx_sms_sender_parameter_name','title'=>'SMS Sender Parameter Name'),
-             array('key'=>'onyx_sms_sender_parameter_value','title'=>'SMS Sender Parameter Value'),
-             array('key'=>'onyx_sms_message_parameter_name','title'=>'SMS Message Parameter Name'),
+       array('key'=>'onyx_sms_api_parameter_name','title'=>'SMS API Key Parameter Name'),
+       array('key'=>'onyx_sms_api_value','title'=>'SMS API Value'),
+       array('key'=>'onyx_sms_number_parameter_name','title'=>'SMS Number Parameter Name'),
+       array('key'=>'onyx_sms_sender_parameter_name','title'=>'SMS Sender Parameter Name'),
+       array('key'=>'onyx_sms_sender_parameter_value','title'=>'SMS Sender Parameter Value'),
+       array('key'=>'onyx_sms_message_parameter_name','title'=>'SMS Message Parameter Name'),
 			 array('key'=>'onyx_images_uri','title'=>'Images Base Url','type'=>'url'),
-			 array('key'=>'onyx_product_quantity','title'=>'Product Quantity','type'=>'radio', "options"=>array("AvailableQuantity"=>"Available Quantity","AvailableWithReservedQuantity"=>"Available With Reserved"))
+			 array('key'=>'onyx_product_quantity','title'=>'Product Quantity','type'=>'radio', "options"=>array("AvailableQuantity"=>"Available Quantity","AvailableWithReservedQuantity"=>"Available With Reserved")),
+        array('key'=>'onyx_attribute_type','title'=>'Sync attribute option','type'=>'radio', "options"=>array("attachments"=>"Attachments","bathes"=>"Batches"))
 		);
 		return $apiSettingsArray;
 	}

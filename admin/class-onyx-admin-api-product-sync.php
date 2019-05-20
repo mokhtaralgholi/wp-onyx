@@ -74,7 +74,12 @@ class Onyx_Admin_API_Product_Sync {
 							 '&sortDirection=-1');
 		$products = $this->ApiSyncClass->get_records($opt);
     $onyx_api_variations_sync = new onyx_api_variations_sync($this->plugin_name,$this->version);
-    $onyx_api_variations_sync->sync_products_attributes_batches();
+    $attribute_option = get_option('onyx_attribute_type');
+    if ($attribute_option == "attachments"){
+      $onyx_api_variations_sync->sync_products_attributes();
+    } else {
+      $onyx_api_variations_sync->sync_products_attributes_batches();
+    }
         return $products->MultipleObjectHeader;
 	}
 	public function process_erp_products($products){
@@ -108,7 +113,12 @@ class Onyx_Admin_API_Product_Sync {
 			$pcount++;
 		}
     $onyx_api_variations_sync = new onyx_api_variations_sync($this->plugin_name,$this->version);
-    $onyx_api_variations_sync->sync_products_variation_batches();
+    $attribute_option = get_option('onyx_attribute_type');
+    if ($attribute_option == "attachments"){
+      $onyx_api_variations_sync->sync_products_variation();
+    } else {
+      $onyx_api_variations_sync->sync_products_variation_batches();
+    }
 	return $productslog;
 	}
 	public function  set_groups_data($obj){
