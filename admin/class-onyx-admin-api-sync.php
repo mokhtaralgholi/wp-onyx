@@ -166,11 +166,16 @@ class Onyx_Admin_API_Sync {
 	}
 
 
-	public function get_records($opt,$method="GET",$contentType=''){
+	public function get_records($opt,$lang=null,$method="GET",$contentType=''){
 		$apiSettings = $this->get_API_settings();
+		if ($lang) {
+		  $lang_code = $lang;
+    } else {
+		  $lang_code = $this->ApisettingClass->get_default_language_code();
+    }
 		$hasPort = parse_url($apiSettings['api_uri'],PHP_URL_PORT);
-		$currentlog = '';
-		$urlprams =$opt['service'].'?type=ORACLE'.'&year='.$apiSettings["accounting_year"].'&activityNumber='. $apiSettings["accounting_unit_number"].'&languageID='.$apiSettings["language_number"].$opt['prams'];
+    $currentlog = '';
+		$urlprams =$opt['service'].'?type=ORACLE'.'&year='.$apiSettings["accounting_year"].'&activityNumber='. $apiSettings["accounting_unit_number"].'&languageID='.$lang_code.$opt['prams'];
 		$APIuri = rtrim($apiSettings['api_uri'], '/') . '/';
 		$newlog = '==========================API REQUEST ======================= <br />
 		           ['. date('d-m-Y h:i:s').']' . '[API Request] '. $APIuri.$urlprams .'
