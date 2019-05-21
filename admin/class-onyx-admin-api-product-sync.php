@@ -75,6 +75,7 @@ class Onyx_Admin_API_Product_Sync {
 		$products = $this->ApiSyncClass->get_records($opt);
     $onyx_api_variations_sync = new onyx_api_variations_sync($this->plugin_name,$this->version);
     $attribute_option = get_option('onyx_attribute_type');
+
     if ($attribute_option == "attachments"){
       $onyx_api_variations_sync->sync_products_attributes();
     } else {
