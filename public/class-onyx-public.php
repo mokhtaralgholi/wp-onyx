@@ -305,9 +305,11 @@ class Onyx_Public {
         foreach ($line_items as $item_key => $item_values){
 			 $oItem =array();
 			 $product_id = $item_values->get_product_id();
+
 			  $pUnit  = get_post_meta($product_id,'_onyxtab_unit',true);
 				$pCode  = get_post_meta($product_id,'_onyxtab_code',true);
 				$item_data = $item_values->get_data();
+        $batch_no = $this->get_variations_batch_no($item_data['variation_id']);
 				$quantity = $item_data['quantity'];
 	 			$tax_class = $item_data['tax_class'];
 	 			$line_subtotal = $item_data['subtotal'];
@@ -323,7 +325,14 @@ class Onyx_Public {
 								'DiscountValue' =>0,
 								'TaxRate'   =>$line_subtotal_tax,
 								'TaxAmount' =>$line_total_tax,
-								'CharegeAmt'=> $line_total
+								'CharegeAmt'=> $line_total,
+                'P_BATCH_NO' => $batch_no,
+                'P_FREE_QTY' => '1',
+                'P_SUB_C_CODE' => '0',
+                'P_DIS_AMT_MST' => '0',
+                'P_EXPIRE_DATE'=> '0',
+                'P_DIS_AMT_DTL2' => '0',
+                'P_DIS_AMT_DTL3'=> '0'
 				);
 				//echo '<pre>'; print_r($product_id); echo '</pre>';
 				$orderItems[]=$oItem;
@@ -370,6 +379,16 @@ class Onyx_Public {
 	 }else{
 		 echo 'Order Already Posted to ERP';
 	 }
+ }
+
+ public function get_variations_batch_no ($variation_id) {
+	  $batch_no = 0;
+   $variation = wc_get_product($variation_id);
+   $attributes = $variation->get_attributes();
+   foreach ($attributes as $item_key => $item_values){
+     $batch_no .= $item_values;
+   }
+   return $batch_no;
  }
 
 

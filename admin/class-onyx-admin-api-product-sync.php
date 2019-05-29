@@ -96,9 +96,9 @@ class Onyx_Admin_API_Product_Sync {
 					 $productslog['added'][$pcount]['erpcode']=$product->Code;
 					 $productslog['added'][$pcount]['time']=time();
 					 $productslog['added'][$pcount]['woopid']=$maybeAdded;
-					 if ($this->sitepress) {
-             $Onyx_WPML_Product_Sync->wmpl_sync_product($product, $maybeAdded);
-           }
+//					 if ($this->sitepress) {
+//             $Onyx_WPML_Product_Sync->wmpl_sync_product($product, $maybeAdded);
+//           }
 				 }
 		  }else{
 				 $maybeUpdated =  $this->update_product($product,$maybeExsist[0]->ID);
@@ -106,9 +106,9 @@ class Onyx_Admin_API_Product_Sync {
 					 $productslog['updated'][$pcount]['erpcode']=$product->Code;
 					 $productslog['updated'][$pcount]['time']=time();
 					 $productslog['updated'][$pcount]['woopid']=$maybeExsist[0]->ID;
-           if ($this->sitepress && $maybeExsist[1]->ID ) {
-             $Onyx_WPML_Product_Sync->wmpl_sync_product($product, $maybeExsist[1]->ID);
-           }
+//           if ($this->sitepress && $maybeExsist[1]->ID ) {
+//             $Onyx_WPML_Product_Sync->wmpl_sync_product($product, $maybeExsist[1]->ID);
+//           }
 				 }
 			}
 			$pcount++;
