@@ -326,11 +326,12 @@ class Onyx_Public {
 								'TaxRate'   =>$line_subtotal_tax,
 								'TaxAmount' =>$line_total_tax,
 								'CharegeAmt'=> $line_total,
+                'P_DIS_AMT_AFTR_VAT' => 0,
                 'P_BATCH_NO' => $batch_no,
                 'P_FREE_QTY' => '1',
-                'P_SUB_C_CODE' => '0',
+                'P_SUB_C_CODE' => '-1',
                 'P_DIS_AMT_MST' => '0',
-                'P_EXPIRE_DATE'=> '0',
+                'P_EXPIRE_DATE'=> '-1',
                 'P_DIS_AMT_DTL2' => '0',
                 'P_DIS_AMT_DTL3'=> '0'
 				);
@@ -364,6 +365,11 @@ class Onyx_Public {
 								'FileExtension' =>'',
 								'ImageValue'		=>'',
 								'P_AD_TRMNL_NM' =>0,
+								'P_ORDER_DATE' => -1,
+								'P_DISC_AMT_AFTR_VAT' => 0,
+								'P_CASH_NO' => "-1",
+								'P_CR_CARD_NO' => "-1",
+								'P_BILL_DOC_TYPE' => "1",
 								'OrderDetailsList'=>$orderItems
 								);
 		 $isOrderPushed = $onyx_api_sync->push_records($postOptions);
