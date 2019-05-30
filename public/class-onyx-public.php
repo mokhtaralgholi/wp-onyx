@@ -388,7 +388,7 @@ class Onyx_Public {
  }
 
  public function get_variations_batch_no ($variation_id) {
-	  $batch_no = 0;
+	  $batch_no = "";
    $variation = wc_get_product($variation_id);
    $attributes = $variation->get_attributes();
    foreach ($attributes as $item_key => $item_values){
